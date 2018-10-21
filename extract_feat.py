@@ -128,7 +128,7 @@ def get_feat(start, w_size, have_label=True):
     # t["fb_diff_mean_rate"] = t["fund_diff_mean"] / t["benchmark_diff_mean"]
     # t["fb_diff_std_rate"] = t["fund_diff_std"] / t["benchmark_diff_std"]
 
-    columns = ["fund_name"] + t.columns.tolist() + [i+"_x" for i in t.columns.tolist()] + \
+    columns = t.columns.tolist() + [i+"_x" for i in t.columns[1:].tolist()] + \
                                                                                ["fund_eluer",
                                                                                "fund_cosin",
                                                                                "bench_eluer",
@@ -166,7 +166,7 @@ def get_feat(start, w_size, have_label=True):
     index = 0
     for i in range(len(fund_names)):
         for j in range(i + 1, len(fund_names)):
-            d = [fund_names[i] + "-" + fund_names[j]] + t.iloc[i, :].append(t.iloc[j, :], ignore_index=True).tolist()
+            d = [fund_names[i] + "-" + fund_names[j]] + t.iloc[i, 1:].append(t.iloc[j, 1:], ignore_index=True).tolist()
 
             fund_x, fund_y = fund_tmp.iloc[i, :].values, fund_tmp.iloc[j, :].values
             fund_eluer = get_eluer_dis(fund_x, fund_y)
@@ -261,12 +261,12 @@ if __name__ == '__main__':
 
     # TODO: 两个基金之前的相关性特征，只能取前多少天的，但是预测的时候有60多天corr数据缺失，怎么办
     w_size = 60 # 窗口大小
-    delta = 1 # 步长
+    delta = 10 # 步长
     data_list = []
-    for i in range(441, 481, delta):
+    for i in range(300, 481, delta):
         data = get_feat(i, w_size).iloc[:, 1:]
         data_list.append(data)
 
     train_data = pd.concat(data_list, axis=0)
     print(train_data.shape)
-    train_data.to_csv("data/train_data.csv", index=None)
+    train_data.to_csv("data/train_data300_481_10.csv", index=None)
