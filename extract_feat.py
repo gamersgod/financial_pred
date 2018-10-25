@@ -270,3 +270,6 @@ if __name__ == '__main__':
     train_data = pd.concat(data_list, axis=0)
     print(train_data.shape)
     train_data.to_csv("data/train_data300_481_10.csv", index=None)
+
+    # test_data = get_feat(541, 60, have_label=False)
+    # test_data.to_csv("data/test_data.csv", index=None)

@@ -1,68 +1,63 @@
 import pandas as pd
+import numpy as np
 import lightgbm as lgb
 import xgboost as xgb
 from catboost import CatBoostRegressor
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold, train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+from xgboost import XGBRegressor
+from lightgbm import LGBMRegressor
 
-train_data0 = pd.read_csv("data/train_data_0.csv").iloc[:, 1:]
-train_data1 = pd.read_csv("data/train_data_1.csv").iloc[:, 1:]
-train_data2 = pd.read_csv("data/train_data_2.csv").iloc[:, 1:]
-train_data3 = pd.read_csv("data/train_data_3.csv").iloc[:, 1:]
-train_data4 = pd.read_csv("data/train_data_4.csv").iloc[:, 1:]
-train_data5 = pd.read_csv("data/train_data_5.csv").iloc[:, 1:]
-train_data6 = pd.read_csv("data/train_data_6.csv").iloc[:, 1:]
-train_data7 = pd.read_csv("data/train_data_7.csv").iloc[:, 1:]
-train_data8 = pd.read_csv("data/train_data_8.csv").iloc[:, 1:]
-train_data9 = pd.read_csv("data/train_data_9.csv").iloc[:, 1:]
-train_data10 = pd.read_csv("data/train_data_10.csv").iloc[:, 1:]
 
-test_data0 = pd.read_csv("data/test_data_0.csv").iloc[:, 1:]
-test_data1 = pd.read_csv("data/test_data_1.csv").iloc[:, 1:]
-test_data2 = pd.read_csv("data/test_data_2.csv").iloc[:, 1:]
+#TODO: eluer feature not so good, may be use 1 to - or / it.
+data = pd.read_csv("data/train_data0_481_10_back.csv")
+data = data.dropna(axis=0)
 
-data = pd.concat([train_data0, train_data1, train_data2, train_data3, train_data4, train_data5, train_data6,
-                  train_data7, train_data8, train_data9, train_data10, test_data0, test_data1, test_data2],
-                 axis=0)
+data_x = data.drop("label", axis=1)
+data_y = data["label"].values
 
-data_x = data.iloc[:, :-1]
-data_y = data["label"]
+print(data_x.shape)
 
-train_x, val_x, train_y, val_y = train_test_split(data_x, data_y, test_size=0.2)
+test_data = pd.read_csv("data/test_data.csv")
+test_x = test_data.iloc[:, 1:].values
 
-test_x = pd.read_csv("data/test_data_7.csv").iloc[:, 1:]
+N = 5
+kf = KFold(n_splits=N, random_state=42, shuffle=True)
 
-print("train size", train_x.shape)
-print("val size", val_x.shape)
-print("test size", test_x.shape)
 
 def train_lgb():
 
     params = {
-        "learning_rate": 0.5,
+        "learning_rate": 0.6,
         "boosting_type":"gbdt",
-        "max_depth":5,
+        "num_leaves":120,
         # "lambda_l2" : 100,
         "lambda_l1" : 10,
-        "metric": "rmse"
+        "feature_fraction": 0.7,
+        "bagging_fraction": 0.7,
+        "bagging_freq": 5,
+        "metric": "rmse",
+        "verbose": -1
     }
 
-    lgb_train = lgb.Dataset(train_x, train_y)
-    lgb_val = lgb.Dataset(val_x, val_y)
+    submits = np.zeros([test_x.shape[0], N])
+    for k, (train_idx, test_idx) in enumerate(kf.split(data_x, data_y)):
+        train_x, val_x, train_y, val_y = data_x[train_idx], data_x[test_idx], data_y[train_idx], data_y[test_idx]
+        lgb_train = lgb.Dataset(train_x, train_y)
+        lgb_eval = lgb.Dataset(val_x, val_y, reference=lgb_train)
 
-    gbm = lgb.train(params, lgb_train, num_boost_round=2000, valid_sets=[lgb_train, lgb_val], early_stopping_rounds=30)
+        gbm = lgb.train(params, lgb_train, num_boost_round=5000, valid_sets=[lgb_train, lgb_eval],
+                        early_stopping_rounds=50, verbose_eval=50)
+        # submits[:, k] = gbm.predict(test_x, num_iteration=gbm.best_iteration)
 
-    test_data = pd.read_csv("data/test_data_7.csv")
-
-    test_x = test_data.iloc[:, 1:]
-
-    test_data["2018-03-19"] = gbm.predict(test_x)
-
-    test_data[["fund_name", "2018-03-19"]].to_csv("submission1.csv", index=None)
+    # test_data["label"] = np.mean(submits, axis=1)
+    # test_data[["fund_name", "label"]].to_csv("sub_lgb_kflod5.csv", index=False)
 
 
 def train_xgb():
     params = {
-        "eta" : 0.1,
+        "eta" : 0.3,
         "max_depth": 5,
         "subsample": 0.8,
         "colsample_bytree": 0.8,
@@ -73,9 +68,10 @@ def train_xgb():
         "seed": 888
     }
 
+    train_x, val_x, train_y, val_y = train_test_split(data_x, data_y, test_size=0.2)
     train_data = xgb.DMatrix(train_x, train_y)
     val_data = xgb.DMatrix(val_x, val_y)
-    model = xgb.train(params, train_data, num_boost_round=1000, evals=[(train_data, "train"), (val_data, "val")],
+    model = xgb.train(params, train_data, num_boost_round=5000, evals=[(train_data, "train"), (val_data, "val")],
               early_stopping_rounds=50, verbose_eval=50)
 
     fscore = model.get_fscore()
@@ -88,9 +84,18 @@ def train_xgb():
 
 
 def train_cat():
-    model = CatBoostRegressor(iterations=2000, depth=5, learning_rate=0.7, loss_function="RMSE")
+    train_x, val_x, train_y, val_y = train_test_split(data_x, data_y, test_size=0.2)
+    model = CatBoostRegressor(iterations=3000, depth=7, learning_rate=2.0, loss_function="RMSE")
     model.fit(train_x, train_y, eval_set=(val_x, val_y), plot=True)
 
 
+def train_sklearn():
+    train_x, val_x, train_y, val_y = train_test_split(data_x, data_y, test_size=0.2)
+    print("start train")
+    rf = XGBRegressor(silent=-1)
+    rf.fit(train_x, train_y)
+    print("loss", mean_squared_error(rf.predict(val_x), val_y))
+
+
 if __name__ == '__main__':
-    train_cat()
+    train_xgb()
