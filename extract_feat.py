@@ -253,15 +253,15 @@ def get_feat(start, w_size, have_label=True):
 
 
 if __name__ == '__main__':
-    fund_data = pd.read_csv("dataset/fund_data.csv")
-    bench_data = pd.read_csv("dataset/bench_data.csv")
-    index_data = pd.read_csv("dataset/index_data.csv", encoding="gbk")
-    corr_data = pd.read_csv("dataset/corr_data.csv")
+    fund_data = pd.read_csv("new_dataset/fund_data.csv")
+    bench_data = pd.read_csv("new_dataset/bench_data.csv")
+    index_data = pd.read_csv("new_dataset/index_data.csv", encoding="gbk")
+    corr_data = pd.read_csv("new_dataset/corr_data.csv")
     all_date = corr_data.columns[1:].tolist()
 
     # TODO: 两个基金之前的相关性特征，只能取前多少天的，但是预测的时候有60多天corr数据缺失，怎么办
     w_size = 60 # 窗口大小
-    delta = 10 # 步长
+    delta = 30 # 步长
     data_list = []
     for i in range(300, 481, delta):
         data = get_feat(i, w_size).iloc[:, 1:]
@@ -269,7 +269,7 @@ if __name__ == '__main__':
 
     train_data = pd.concat(data_list, axis=0)
     print(train_data.shape)
-    train_data.to_csv("data/train_data300_481_10.csv", index=None)
+    train_data.to_csv("new_data/train_data300_481_30.csv", index=None)
 
     # test_data = get_feat(541, 60, have_label=False)
     # test_data.to_csv("data/test_data.csv", index=None)
