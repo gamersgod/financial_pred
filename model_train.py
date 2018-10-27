@@ -11,7 +11,7 @@ from lightgbm import LGBMRegressor
 
 
 #TODO: eluer feature not so good, may be use 1 to - or / it.
-data = pd.read_csv("data/train_data0_481_10_back.csv")
+data = pd.read_csv("new_data/train_data1_481_30.csv")
 data = data.dropna(axis=0)
 
 data_x = data.drop("label", axis=1).values
@@ -19,7 +19,7 @@ data_y = data["label"].values
 
 print(data_x.shape)
 
-test_data = pd.read_csv("data/test_data.csv")
+test_data = pd.read_csv("new_data/test_data.csv")
 test_x = test_data.iloc[:, 1:].values
 
 print(test_x.shape)
