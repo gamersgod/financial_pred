@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+from sklearn.metrics.pairwise import cosine_similarity
 
 def get_next_day(curr_day):
     idx = all_date.index(curr_day)
@@ -82,52 +82,52 @@ def get_feat(start, w_size, have_label=True):
     d1 = d.drop(["fund_name_x", "fund_name_y", "fund_name_x_", "fund_name_y_", "value"], axis=1)
 
     fund_corr = fund_tmp.T.corr().values[decare_iindex]
-    d1["fund_cosin"] = fund_corr
+    d1["fund_pearson"] = fund_corr
 
     fund_corr_7 = fund_tmp.iloc[:, -7:].T.corr().values[decare_iindex]
-    d1["fund_cosin_7"] = fund_corr_7
+    d1["fund_pearson_7"] = fund_corr_7
 
     fund_corr_15 = fund_tmp.iloc[:, -15:].T.corr().values[decare_iindex]
-    d1["fund_cosin_15"] = fund_corr_15
+    d1["fund_pearson_15"] = fund_corr_15
 
     fund_corr_30 = fund_tmp.iloc[:, -30:].T.corr().values[decare_iindex]
-    d1["fund_cosin_30"] = fund_corr_30
+    d1["fund_pearson_30"] = fund_corr_30
 
     bench_corr = bench_tmp.T.corr().values[decare_iindex]
-    d1["bench_cosin"] = bench_corr
+    d1["bench_pearson"] = bench_corr
 
     bench_corr_7 = bench_tmp.iloc[:, -7:].T.corr().values[decare_iindex]
-    d1["bench_cosin_7"] = bench_corr_7
+    d1["bench_pearson_7"] = bench_corr_7
 
     bench_corr_15 = bench_tmp.iloc[:, -15:].T.corr().values[decare_iindex]
-    d1["bench_cosin_15"] = bench_corr_15
+    d1["bench_pearson_15"] = bench_corr_15
 
     bench_corr_30 = bench_tmp.iloc[:, -30:].T.corr().values[decare_iindex]
-    d1["bench_cosin_30"] = bench_corr_30
+    d1["bench_pearson_30"] = bench_corr_30
 
     fund_diff_corr = fund_diff.T.corr().values[decare_iindex]
-    d1["fund_diff_cosin"] = fund_diff_corr
+    d1["fund_diff_pearson"] = fund_diff_corr
 
     fund_diff_corr_7 = fund_diff.iloc[:, -7:].T.corr().values[decare_iindex]
-    d1["fund_diff_cosin_7"] = fund_diff_corr_7
+    d1["fund_diff_pearson_7"] = fund_diff_corr_7
 
     fund_diff_corr_15 = fund_diff.iloc[:, -15:].T.corr().values[decare_iindex]
-    d1["fund_diff_cosin_15"] = fund_diff_corr_15
+    d1["fund_diff_pearson_15"] = fund_diff_corr_15
 
     fund_diff_corr_30 = fund_diff.iloc[:, -30:].T.corr().values[decare_iindex]
-    d1["fund_diff_cosin_30"] = fund_diff_corr_30
+    d1["fund_diff_pearson_30"] = fund_diff_corr_30
 
     bench_diff_corr = bench_diff.T.corr().values[decare_iindex]
-    d1["bench_diff_cosin"] = bench_diff_corr
+    d1["bench_diff_pearson"] = bench_diff_corr
 
     bench_diff_corr_7 = bench_diff.iloc[:, -7:].T.corr().values[decare_iindex]
-    d1["bench_diff_cosin_7"] = bench_diff_corr_7
+    d1["bench_diff_pearson_7"] = bench_diff_corr_7
 
     bench_diff_corr_15 = bench_diff.iloc[:, -15:].T.corr().values[decare_iindex]
-    d1["bench_diff_cosin_15"] = bench_diff_corr_15
+    d1["bench_diff_pearson_15"] = bench_diff_corr_15
 
     bench_diff_corr_30 = bench_diff.iloc[:, -30:].T.corr().values[decare_iindex]
-    d1["bench_diff_cosin_30"] = bench_diff_corr_30
+    d1["bench_diff_pearson_30"] = bench_diff_corr_30
 
     fund_corr = fund_tmp.T.corr("spearman").values[decare_iindex]
     d1["fund_spearman"] = fund_corr
@@ -176,6 +176,55 @@ def get_feat(start, w_size, have_label=True):
 
     bench_diff_corr_30 = bench_diff.iloc[:, -30:].T.corr("spearman").values[decare_iindex]
     d1["bench_diff_spearman_30"] = bench_diff_corr_30
+
+    fund_corr = cosine_similarity(fund_tmp).values[decare_iindex]
+    d1["fund_cosin"] = fund_corr
+
+    fund_corr_7 = cosine_similarity(fund_tmp.iloc[:, -7:]).values[decare_iindex]
+    d1["fund_cosin_7"] = fund_corr_7
+
+    fund_corr_15 = cosine_similarity(fund_tmp.iloc[:, -15:]).alues[decare_iindex]
+    d1["fund_cosin_15"] = fund_corr_15
+
+    fund_corr_30 = cosine_similarity(fund_tmp.iloc[:, -30:]).values[decare_iindex]
+    d1["fund_cosin_30"] = fund_corr_30
+
+    bench_corr = cosine_similarity(bench_tmp).values[decare_iindex]
+    d1["bench_cosin"] = bench_corr
+
+    bench_corr_7 = cosine_similarity(bench_tmp.iloc[:, -7:]).values[decare_iindex]
+    d1["bench_cosin_7"] = bench_corr_7
+
+    bench_corr_15 = cosine_similarity(bench_tmp.iloc[:, -15:]).values[decare_iindex]
+    d1["bench_cosin_15"] = bench_corr_15
+
+    bench_corr_30 = cosine_similarity(bench_tmp.iloc[:, -30:]).values[decare_iindex]
+    d1["bench_cosin_30"] = bench_corr_30
+
+    fund_diff_corr = cosine_similarity(fund_diff).values[decare_iindex]
+    d1["fund_diff_cosin"] = fund_diff_corr
+
+    fund_diff_corr_7 = cosine_similarity(fund_diff.iloc[:, -7:]).values[decare_iindex]
+    d1["fund_diff_cosin_7"] = fund_diff_corr_7
+
+    fund_diff_corr_15 = cosine_similarity(fund_diff.iloc[:, -15:]).values[decare_iindex]
+    d1["fund_diff_cosin_15"] = fund_diff_corr_15
+
+    fund_diff_corr_30 = cosine_similarity(fund_diff.iloc[:, -30:]).values[decare_iindex]
+    d1["fund_diff_cosin_30"] = fund_diff_corr_30
+
+    bench_diff_corr = cosine_similarity(bench_diff).values[decare_iindex]
+    d1["bench_diff_cosin"] = bench_diff_corr
+
+    bench_diff_corr_7 = cosine_similarity(bench_diff.iloc[:, -7:]).values[decare_iindex]
+    d1["bench_diff_cosin_7"] = bench_diff_corr_7
+
+    bench_diff_corr_15 = cosine_similarity(bench_diff.iloc[:, -15:]).values[decare_iindex]
+    d1["bench_diff_cosin_15"] = bench_diff_corr_15
+
+    bench_diff_corr_30 = cosine_similarity(bench_diff.iloc[:, -30:]).values[decare_iindex]
+    d1["bench_diff_cosin_30"] = bench_diff_corr_30
+
 
     # 相关性特征
     corr_value = corr_data.iloc[:, start-15:start]
